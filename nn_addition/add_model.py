@@ -85,7 +85,7 @@ class AdditionModel(pl.LightningModule):
 
         # calculate the loss with the mean squared error
         loss = nn.MSELoss()(y_pred, y)
-
+        self.log('train_loss', loss)  # log the loss to display it later with tensorboard
         return loss
 
     def configure_optimizers(self):
