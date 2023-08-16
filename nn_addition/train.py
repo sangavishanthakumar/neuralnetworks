@@ -14,6 +14,10 @@ train_loader = DataLoader(train_data, batch_size=32, shuffle=True)  # TODO what 
 
 model = AdditionModel()
 
-logger = TensorBoardLogger('tb_logs', name='addition_model')  # log the results to display them later with tensorboard
-trainer = pl.Trainer(max_epochs=2, logger=logger)
+logger = TensorBoardLogger('tb_logs', name='addition_model')
+# log the results to display them later with tensorboard
+# enter in terminal (while being in nn_addition/tb_logs/addition_model)
+# tensorboard  --logdir version_x
+trainer = pl.Trainer(max_epochs=10, logger=logger)
 trainer.fit(model, train_loader)
+

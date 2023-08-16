@@ -4,6 +4,7 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import pytorch_lightning as pl
 import random
+import torch.nn.functional as F
 
 ''' IN PROGRESS '''
 
@@ -45,6 +46,7 @@ class AdditionDataset(Dataset):
 class'''
 
 
+# TODO insert further metrics
 class AdditionModel(pl.LightningModule):
     # constructor of class AdditionModel
     # input: 2 (the 2 numbers that should be added)
@@ -72,6 +74,8 @@ class AdditionModel(pl.LightningModule):
         # remove the output size by using .squeeze(1) that removes the output size dimension so the example from above would be [2] instead of [2,1] bzw. it would be [3,5] instead of [[3],[5]]
         return self.network(x).squeeze(1)
 
+    # backward? Implementation not needed, because the trainer does this automatically by
+    # abstracting the loss valu from training_step and calling .backward() on iit
     def training_step(self, batch, batch_index):
         # batch: tuple that contains the input data and label -> batch = (input, label)
         # batch in general: multiple samples that are processed at the same time
@@ -84,10 +88,20 @@ class AdditionModel(pl.LightningModule):
         y_pred = self(x)  # self calls implicitly the forward function
 
         # calculate the loss with the mean squared error
-        loss = nn.MSELoss()(y_pred, y)
+        loss = F.mse_loss(y_pred, y)
+        # Why not loss = nn.MSELoss()(y_pred, y)?
+        # -> nn.MSELoss() is creating an instance, but I do not need the loss value multiple times,
+        # so F.mse_loss is enough
         self.log('train_loss', loss)  # log the loss to display it later with tensorboard
+        return loss
+
+    def validation_step(self, batch, batch_index):
+        x, y = batch
+        y_pred = self(x)
+        loss = F.mse_loss(y_pred, y)
+        self.log('val_loss', loss)
         return loss
 
     def configure_optimizers(self):
         # use optimizer to optimize the network and the output
-        return optim.Adam(self.parameters(), lr=0.001)
+        return optim.Adam(self.parameters(), lr=0.001)  # lr -> learning rate == hyper parameter
