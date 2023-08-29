@@ -7,8 +7,8 @@ model = tf.keras.Sequential([keras.layers.Dense(units=1, input_shape=[1])])
 model.compile(optimizer='sgd', loss='mean_squared_error')
 
 xs = [1, 2, 3]  # input
-# ys = [2, 4, 6] # correct output for the input after multiplying by 2
-ys = [3, 4, 5]  # correct output for the input after adding 2
+ys = [2, 4, 6] # correct output for the input after multiplying by 2
+#ys = [3, 4, 5]  # correct output for the input after adding 2
 model.fit(xs, ys, epochs=1000)
 
 print(model.predict([7]))  # predict the output for the input 7

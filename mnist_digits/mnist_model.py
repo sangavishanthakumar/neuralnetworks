@@ -45,6 +45,7 @@ def init_param():
 
 
 def ReLU(Z):
+    # ReLU function: max(0, Z)
     return np.maximum(0, Z)  # checking element-wise the maximum of array elements
 
 
@@ -104,7 +105,6 @@ def get_predictions(A2):
 def get_accuracy(predictions, Y):
     print(predictions, Y)
     return np.sum(predictions == Y) / Y.size
-
 
 def gradient_descent(X, Y, alpha, iterations):
     W1, b1, W2, b2 = init_param()

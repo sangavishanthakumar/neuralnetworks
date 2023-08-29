@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 from nn_addition.add_model import AdditionDataset, AdditionModel
 
-MODEL_PATH = 'tb_logs/addition_model/version_2/checkpoints/epoch=9-step=156250.ckpt'
+MODEL_PATH = 'tb_logs/addition_model/version_23/checkpoints/epoch=1-step=31250.ckpt'
 
 model = AdditionModel.load_from_checkpoint(MODEL_PATH)  # create an instance of the model
 
@@ -22,7 +22,8 @@ with torch.no_grad():  # do not compute gradients because we only evaluate here
         x, y = batch
         x, y = x.to(device), y.to(device)
         y_pred = model(x)
-        loss = nn.MSELoss()(y_pred, y)
+        y_pred_squeezed = y_pred.squeeze(1)
+        loss = nn.MSELoss()(y_pred_squeezed, y)
         total_loss += loss.item()
     avg_loss = total_loss / len(test_loader)
     print(f'Average loss: {avg_loss}')

@@ -16,6 +16,7 @@ import torch.nn.functional as F
 class AdditionDataset(Dataset):
     ''' let the neuronal network train with numbers that are between 0 and 100'''
 
+    # TODO max_num erhöhen
     def __init__(self, num_examples, max_num=100):
         self.num_examples = num_examples
         self.data = torch.randint(0, max_num, (num_examples, 2), dtype=torch.float32)
@@ -71,8 +72,13 @@ class AdditionModel(pl.LightningModule):
         # ! nn.Linear returns the batch size and the output size
         # nn.Linear(2,1) -> makes [[1,2]] to [[3]] (batch size = 1, output size = 1).
         # nn.Linear(2,1) -> makes [[1,2],[2,3]] to [[3],[5]] (batch size = 2, output size = 1).
-        # remove the output size by using .squeeze(1) that removes the output size dimension so the example from above would be [2] instead of [2,1] bzw. it would be [3,5] instead of [[3],[5]]
-        return self.network(x).squeeze(1)
+        # 1: remove the output size by using .squeeze(1) that removes the output size dimension so the example from above would be [2] instead of [2,1] bzw. it would be [3,5] instead of [[3],[5]]
+        # squeeze(1): AVERAGE LOSS low 5.418554827052446e-06
+        # squeeze():  AVERAGE LOSS low 0.0129
+        # return self.network(x).squeeze(1) # not squeeze() because we work with batches; in flask it is squeeze()
+        # squeeze(1) is used in test.py
+        # 3:
+        return self.network(x)
 
     # backward? Implementation not needed, because the trainer does this automatically by
     # abstracting the loss valu from training_step and calling .backward() on iit
@@ -87,8 +93,13 @@ class AdditionModel(pl.LightningModule):
         # call the forward function to get the prediction
         y_pred = self(x)  # self calls implicitly the forward function
 
+        # Print shapes for debugging
+        # print("y_pred shape:", y_pred.shape)
+        y_pred_squeezed = y_pred.squeeze(1)
+        # print("y_pred_squeezed shape:", y_pred_squeezed.shape)
+        # print("y shape:", y.shape)
         # calculate the loss with the mean squared error
-        loss = F.mse_loss(y_pred, y)
+        loss = F.mse_loss(y_pred_squeezed, y)
         # Why not loss = nn.MSELoss()(y_pred, y)?
         # -> nn.MSELoss() is creating an instance, but I do not need the loss value multiple times,
         # so F.mse_loss is enough
@@ -97,9 +108,11 @@ class AdditionModel(pl.LightningModule):
 
     def validation_step(self, batch, batch_index):
         x, y = batch
+       #  y = y.unsqueeze(1)  # add a dimension to y to avoid the "axes" error
         y_pred = self(x)
-        loss = F.mse_loss(y_pred, y)
-        self.log('val_loss', loss)
+        y_pred_squeezed = y_pred.squeeze(1)
+        loss = F.mse_loss(y_pred_squeezed, y)
+        self.log('val_loss', loss)  # to display the val_loss, val_data and the dataloader are necessary -> train.py
         return loss
 
     def configure_optimizers(self):
